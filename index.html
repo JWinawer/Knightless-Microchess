@@ -167,6 +167,15 @@
         .portrait img { width: 100%; display: block; }
         .portrait caption { font-size: 0.75rem; color: #666; display: block; text-align: center; margin-top: 5px; }
 
+        .copyright {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 0.85rem;
+            color: #888;
+            text-align: center;
+        }
+
         @media (max-width: 500px) {
             .square { font-size: 3rem; }
             .game-container { flex-direction: column; align-items: center; }
@@ -209,7 +218,7 @@
             <h2>About Knightless Microchess</h2>
             
             <div class="portrait">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e9/Szymon_Winawer.jpg" alt="Szymon Winawer">
+                <img src="Szymon_Winawer.jpg" alt="Szymon Winawer">
                 <caption>Szymon Winawer</caption>
             </div>
 
@@ -220,6 +229,11 @@
             <p>The name <em>Knightless Microchess</em> is the alternate and more descriptive title. When we started tinkering, we found that wherever we put a knight, it made it possible for white to get a checkmate on the first move! To keep the game balanced and playable on a 4x4 grid, we removed the knights and doubled up the bishops instead.</p>
             
             <p>The game was then vibe coded using <strong>Gemini 3</strong>.</p>
+
+            <div class="copyright">
+                &copy; 2026 Jonathan Winawer. All rights reserved.<br>
+                <span style="font-size: 0.75rem;">Game concept by Jonathan Winawer & daughter.</span>
+            </div>
         </div>
     </div>
 
@@ -239,7 +253,6 @@
         const newGameBtn = document.getElementById('new-game-btn');
         const modal = document.getElementById('about-modal');
 
-        // Modal Logic
         document.getElementById('main-title').onclick = () => modal.style.display = "block";
         document.getElementById('about-trigger').onclick = () => modal.style.display = "block";
         document.getElementById('close-modal').onclick = () => modal.style.display = "none";
