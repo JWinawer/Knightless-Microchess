@@ -352,22 +352,11 @@
                     let p = board[r][c];
                     if (p !== 0) {
                         square.innerHTML = getPieceSymbol(p);
-                        
-                        // Styling the text to look like physical pieces
-                        if (p > 0) {
-                            // White pieces: White fill with a sharp black outline
-                            square.style.color = '#fff';
-                            square.style.textShadow = '0px 0px 2px #000, 0px 0px 3px #000';
-                        } else {
-                            // Black pieces: Solid black
-                            square.style.color = '#000';
-                        }
-
-                        // Make pawns slightly smaller to differentiate nicely
-                        if (Math.abs(p) === 1) {
-                            square.style.fontSize = '1.0em';
-                        }
                     }
+
+                    // Attach logical coordinate click handler
+                    square.onclick = () => squareClicked(r, c);
+                    boardEl.appendChild(square);
 
                     // Attach logical coordinate click handler
                     square.onclick = () => squareClicked(r, c);
@@ -377,15 +366,25 @@
         }
 
        function getPieceSymbol(val) {
-            // Added &#xFE0E; to force phones to render as text, not emojis
-            switch (Math.abs(val)) {
-                case 1: return '&#9823;&#xFE0E;'; // Pawn
-                case 2: return '&#9821;&#xFE0E;'; // Bishop
-                case 3: return '&#9820;&#xFE0E;'; // Rook
-                case 4: return '&#9818;&#xFE0E;'; // King
-                case 5: return '&#9819;&#xFE0E;'; // Queen (Promotion)
+            const base = "https://upload.wikimedia.org/wikipedia/commons/";
+            let url = "";
+            
+            switch (val) {
+                case 1:  url = base + "4/45/Chess_plt45.svg"; break; // White Pawn
+                case 2:  url = base + "b/b1/Chess_blt45.svg"; break; // White Bishop
+                case 3:  url = base + "7/72/Chess_rlt45.svg"; break; // White Rook
+                case 4:  url = base + "4/42/Chess_klt45.svg"; break; // White King
+                case 5:  url = base + "1/15/Chess_qlt45.svg"; break; // White Queen
+                case -1: url = base + "c/c7/Chess_pdt45.svg"; break; // Black Pawn
+                case -2: url = base + "9/98/Chess_bdt45.svg"; break; // Black Bishop
+                case -3: url = base + "f/ff/Chess_rdt45.svg"; break; // Black Rook
+                case -4: url = base + "f/f0/Chess_kdt45.svg"; break; // Black King
+                case -5: url = base + "4/47/Chess_qdt45.svg"; break; // Black Queen
                 default: return '';
             }
+            
+            // pointer-events: none prevents the image from interfering with square clicks
+            return `<img src="${url}" style="width: 80%; height: 80%; pointer-events: none;" alt="piece">`;
         }
 
         // --- Chess Move Rules ---
