@@ -248,8 +248,18 @@ function winawer_microchess()
                         txt_col = 'k'; % Black pieces
                     end
                     
-                    % Using 'FontUnits', 'normalized' to scale with the window
-                    text(ax, c, r, sym, 'FontUnits', 'normalized', 'FontSize', 0.2, ...
+                    % Determine variable font size based on piece type
+                    p_type = abs(piece);
+                    if p_type == 1       % Pawn
+                        f_size = 0.16;
+                    elseif p_type == 2   % Bishop
+                        f_size = 0.24;
+                    else                 % Knight, Rook, King, Queen
+                        f_size = 0.20;
+                    end
+                    
+                    % Draw with scaled font size
+                    text(ax, c, r, sym, 'FontUnits', 'normalized', 'FontSize', f_size, ...
                          'HorizontalAlignment', 'center', ...
                          'VerticalAlignment', 'middle', 'Color', txt_col, 'FontWeight', 'bold');
                 end
