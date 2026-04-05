@@ -70,7 +70,7 @@
         #board {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(4, 1fr); /* Prevents layout distortion */
+            grid-template-rows: repeat(4, 1fr);
             width: 100%;
             max-width: 450px;
             aspect-ratio: 1 / 1;
@@ -324,7 +324,41 @@
             if (gameMode === 1 && humanColor === -1 && !gameOver) setTimeout(computerMove, 500);
         }
 
+        function hasInsufficientMaterial(b) {
+            let wBishops = 0;
+            let bBishops = 0;
+
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    let p = b[r][c];
+                    if (p === 0) continue;
+                    
+                    let absP = Math.abs(p);
+                    // If there are any pawns, rooks, or queens, mate is possible
+                    if (absP === 1 || absP === 3 || absP === 5) {
+                        return false;
+                    }
+                    
+                    if (p === 2) wBishops++;
+                    if (p === -2) bBishops++;
+                }
+            }
+            
+            // If we are here, only Kings and Bishops are left.
+            // If neither side has more than 1 Bishop, it's impossible to force checkmate.
+            if (wBishops <= 1 && bBishops <= 1) {
+                return true;
+            }
+
+            return false;
+        }
+
         function checkGameOver(colorToMove) {
+            if (hasInsufficientMaterial(board)) {
+                statusEl.innerText = "Draw! (Insufficient Material)";
+                return true;
+            }
+
             let moves = getLegalMoves(board, colorToMove);
             if (moves.length === 0) {
                 if (isCheck(board, colorToMove)) {
