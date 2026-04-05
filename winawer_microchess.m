@@ -2,78 +2,164 @@ function winawer_microchess()
     % Winawer Microchess
     % A 4x4 chess variant
     
-    % Initialize board
-    % 1=Pawn, 2=Bishop, 3=Rook, 4=King, 5=Queen (for promotion)
-    % Positive = White, Negative = Black
+    % Game State Variables
     board = zeros(4, 4);
-    board(1, :) = [ 4,  2,  2,  3]; % White: King, Bishop, Bishop, Rook
-    board(2, :) = [ 1,  1,  1,  1]; % White: Pawns
-    board(3, :) = [-1, -1, -1, -1]; % Black: Pawns
-    board(4, :) = [-4, -2, -2, -3]; % Black: King, Bishop, Bishop, Rook
-    
     selected_sq = [];
     game_over = false;
+    human_color = 1;  % 1 for White, -1 for Black
+    current_turn = 1; % 1 for White, -1 for Black
     
     % Create GUI
     f = figure('Name', 'Winawer Microchess', 'NumberTitle', 'off', ...
                'MenuBar', 'none', 'ToolBar', 'none', 'Color', [0.9 0.9 0.9], ...
-               'WindowButtonDownFcn', @on_click, 'Position', [300, 300, 500, 500]);
-    ax = axes('Parent', f, 'Position', [0.05 0.05 0.9 0.85]);
+               'WindowButtonDownFcn', @on_click, 'Position', [300, 300, 650, 500]);
+               
+    % Axes Position
+    ax = axes('Parent', f, 'Position', [0.08 0.1 0.6 0.8]);
     hold(ax, 'on');
     axis(ax, 'equal');
     axis(ax, [0.5 4.5 0.5 4.5]);
-    set(ax, 'XTick', [], 'YTick', [], 'XColor', 'none', 'YColor', 'none');
-    title(ax, 'Winawer Microchess - White''s Turn', 'FontSize', 14, 'FontWeight', 'bold');
     
-    draw_board();
-    
+    % X and Y tick labels for files (A-D) and ranks (1-4)
+    set(ax, 'XTick', 1:4, 'XTickLabel', {'A', 'B', 'C', 'D'}, ...
+            'YTick', 1:4, 'YTickLabel', {'1', '2', '3', '4'}, ...
+            'TickLength', [0 0], 'FontSize', 14, 'FontWeight', 'bold', ...
+            'XColor', 'k', 'YColor', 'k');
+            
+    % --- UI Panel Controls ---
+    uicontrol('Parent', f, 'Style', 'text', 'String', 'Game Settings', ...
+              'Units', 'normalized', 'Position', [0.72 0.75 0.25 0.05], ...
+              'FontSize', 14, 'FontWeight', 'bold', 'BackgroundColor', [0.9 0.9 0.9]);
+              
+    color_popup = uicontrol('Parent', f, 'Style', 'popupmenu', ...
+              'String', {'Play as White', 'Play as Black'}, ...
+              'Units', 'normalized', 'Position', [0.72 0.65 0.25 0.08], ...
+              'FontSize', 12);
+              
+    uicontrol('Parent', f, 'Style', 'pushbutton', 'String', 'New Game', ...
+              'Units', 'normalized', 'Position', [0.72 0.5 0.25 0.1], ...
+              'FontSize', 14, 'FontWeight', 'bold', 'Callback', @start_new_game);
+
+    % Start the first game automatically
+    start_new_game([], []);
+
+    % --- Core Game Flow Functions ---
+    function start_new_game(~, ~)
+        % Reset board pieces
+        board = zeros(4, 4);
+        board(1, :) = [ 4,  2,  2,  3]; % White: King, Bishop, Bishop, Rook
+        board(2, :) = [ 1,  1,  1,  1]; % White: Pawns
+        board(3, :) = [-1, -1, -1, -1]; % Black: Pawns
+        board(4, :) = [-4, -2, -2, -3]; % Black: King, Bishop, Bishop, Rook
+        
+        selected_sq = [];
+        current_turn = 1; % White always moves first in chess
+        
+        % Read user color preference
+        if get(color_popup, 'Value') == 1
+            human_color = 1;
+        else
+            human_color = -1;
+        end
+        
+        draw_board();
+        game_over = check_game_over(current_turn);
+        
+        % If user chose Black, the computer (White) must move first
+        if human_color == -1 && ~game_over
+            pause(0.5);
+            computer_move();
+        end
+    end
+
+    function is_over = check_game_over(color_to_move)
+        moves = get_legal_moves(board, color_to_move);
+        is_over = false;
+        
+        if isempty(moves)
+            is_over = true;
+            if is_check(board, color_to_move)
+                if color_to_move == 1
+                    title(ax, 'Checkmate! Black Wins!', 'Color', 'r', 'FontSize', 16);
+                else
+                    title(ax, 'Checkmate! White Wins!', 'Color', 'b', 'FontSize', 16);
+                end
+            else
+                title(ax, 'Stalemate! Draw!', 'Color', 'k', 'FontSize', 16);
+            end
+        else
+            % Game continues, update title
+            if is_check(board, color_to_move)
+                if color_to_move == 1
+                    title(ax, 'Check! White''s Turn', 'Color', 'r', 'FontSize', 16);
+                else
+                    title(ax, 'Check! Black''s Turn', 'Color', 'r', 'FontSize', 16);
+                end
+            else
+                if color_to_move == 1
+                    title(ax, 'White''s Turn', 'Color', 'k', 'FontSize', 16);
+                else
+                    title(ax, 'Black''s Turn', 'Color', 'k', 'FontSize', 16);
+                end
+            end
+        end
+    end
+
     % --- Callback for Mouse Clicks ---
     function on_click(~, ~)
-        if game_over, return; end
+        % Ignore clicks if game is over or it's the computer's turn
+        if game_over || current_turn ~= human_color
+            return; 
+        end
         
         pt = get(ax, 'CurrentPoint');
         col = round(pt(1, 1));
         row = round(pt(1, 2));
         
-        % Ensure click is within board
+        % Ensure click is within board boundaries
         if row < 1 || row > 4 || col < 1 || col > 4
             return;
         end
         
         if isempty(selected_sq)
-            % Select a piece
-            if sign(board(row, col)) == 1 % White piece
+            % Select a piece (must belong to human)
+            if sign(board(row, col)) == human_color 
                 selected_sq = [row, col];
                 draw_board();
             end
         else
             % Attempt to move or change selection
-            if sign(board(row, col)) == 1
-                % Changed mind, selected a different white piece
+            if sign(board(row, col)) == human_color
+                % Changed mind, selected a different friendly piece
                 selected_sq = [row, col];
                 draw_board();
             else
-                % Try to move to the destination
-                moves = get_legal_moves(board, 1);
+                % Try to move to the destination square
+                moves = get_legal_moves(board, human_color);
                 move_idx = find(moves(:,1)==selected_sq(1) & moves(:,2)==selected_sq(2) & ...
                                 moves(:,3)==row & moves(:,4)==col, 1);
                             
                 if ~isempty(move_idx)
-                    % Apply valid move
+                    % Apply valid human move
                     board(row, col) = board(selected_sq(1), selected_sq(2));
                     board(selected_sq(1), selected_sq(2)) = 0;
                     
                     % Auto-promote to Queen
                     if board(row, col) == 1 && row == 4
                         board(row, col) = 5; 
+                    elseif board(row, col) == -1 && row == 1
+                        board(row, col) = -5;
                     end
                     
                     selected_sq = [];
+                    current_turn = -human_color; % Switch turns
                     draw_board();
                     
-                    % Computer's Turn
-                    pause(0.2); % Slight pause for realism
-                    computer_move();
+                    % Check game state, if not over, trigger computer AI
+                    game_over = check_game_over(current_turn);
+                    if ~game_over
+                        computer_move();
+                    end
                 else
                     % Invalid move, deselect
                     selected_sq = [];
@@ -85,16 +171,9 @@ function winawer_microchess()
 
     % --- Computer AI (Random Legal Move) ---
     function computer_move()
-        moves = get_legal_moves(board, -1);
-        
+        moves = get_legal_moves(board, current_turn);
         if isempty(moves)
-            if is_check(board, -1)
-                title(ax, 'Checkmate! White Wins!', 'Color', 'b', 'FontSize', 14);
-            else
-                title(ax, 'Stalemate! Draw!', 'Color', 'k', 'FontSize', 14);
-            end
-            game_over = true;
-            return;
+            return; % Safety check
         end
         
         % Pick a random move
@@ -102,33 +181,34 @@ function winawer_microchess()
         r1 = moves(idx, 1); c1 = moves(idx, 2);
         r2 = moves(idx, 3); c2 = moves(idx, 4);
         
-        % Apply
+        % 1. Highlight the piece about to be moved
+        selected_sq = [r1, c1];
+        draw_board();
+        pause(0.6); % Brief delay before moving
+        
+        % Apply move
         board(r2, c2) = board(r1, c1);
         board(r1, c1) = 0;
         
         % Auto-promote to Queen
-        if board(r2, c2) == -1 && r2 == 1
+        if board(r2, c2) == 1 && r2 == 4
+            board(r2, c2) = 5; 
+        elseif board(r2, c2) == -1 && r2 == 1
             board(r2, c2) = -5;
         end
         
+        % 2. Highlight the destination square
+        selected_sq = [r2, c2];
+        draw_board();
+        pause(0.6); % Brief delay after moving
+        
+        % Pass turn back to human
+        selected_sq = [];
+        current_turn = human_color;
         draw_board();
         
-        % Check if White is mated
-        w_moves = get_legal_moves(board, 1);
-        if isempty(w_moves)
-            if is_check(board, 1)
-                title(ax, 'Checkmate! Black Wins!', 'Color', 'r', 'FontSize', 14);
-            else
-                title(ax, 'Stalemate! Draw!', 'Color', 'k', 'FontSize', 14);
-            end
-            game_over = true;
-        else
-            if is_check(board, 1)
-                title(ax, 'Check! White''s Turn', 'Color', 'r', 'FontSize', 14);
-            else
-                title(ax, 'White''s Turn', 'Color', 'k', 'FontSize', 14);
-            end
-        end
+        % Check if the human is mated or stalemated
+        game_over = check_game_over(current_turn);
     end
 
     % --- Board Drawing ---
@@ -148,7 +228,11 @@ function winawer_microchess()
                 
                 % Highlight selected square
                 if ~isempty(selected_sq) && selected_sq(1)==r && selected_sq(2)==c
-                    sq_color = [0.5 0.8 0.5]; % Greenish
+                    if current_turn == human_color
+                        sq_color = [0.5 0.8 0.5]; % Greenish for human
+                    else
+                        sq_color = [0.9 0.7 0.4]; % Orange for computer
+                    end
                 end
                 
                 rectangle(ax, 'Position', [c-0.5, r-0.5, 1, 1], 'FaceColor', sq_color, 'EdgeColor', 'k');
@@ -164,13 +248,15 @@ function winawer_microchess()
                         txt_col = 'k'; % Black pieces
                     end
                     
-                    % UPDATED: Using 'FontUnits', 'normalized' to scale with the window
+                    % Using 'FontUnits', 'normalized' to scale with the window
                     text(ax, c, r, sym, 'FontUnits', 'normalized', 'FontSize', 0.2, ...
                          'HorizontalAlignment', 'center', ...
                          'VerticalAlignment', 'middle', 'Color', txt_col, 'FontWeight', 'bold');
                 end
             end
         end
+        % Force MATLAB to immediately draw the updates to the UI
+        drawnow; 
     end
 
     function sym = get_piece_symbol(val)
