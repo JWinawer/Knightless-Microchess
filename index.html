@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Winawer Microchess</title>
+    <title>Knightless Microchess</title>
     <style>
         :root {
             --bg-color: #f0f0f0;
@@ -13,6 +13,7 @@
             --highlight-human: #7fb07f;
             --highlight-ai: #d9a466;
             --text-main: #333;
+            --accent: #d93838;
         }
 
         body {
@@ -26,19 +27,35 @@
             padding: 20px;
         }
 
+        .header-container {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
         h1 {
-            margin-top: 0;
-            margin-bottom: 5px;
-            font-size: 1.2rem;
+            margin: 0;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        h1:hover {
             color: #666;
         }
 
+        .about-link {
+            font-size: 0.9rem;
+            color: #888;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
         #status {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: bold;
             height: 40px;
-            margin-bottom: 10px;
-            color: #d93838; 
+            margin-top: 10px;
+            color: var(--accent);
         }
 
         .game-container {
@@ -71,11 +88,6 @@
             transition: background-color 0.1s;
         }
 
-        @media (max-width: 500px) {
-            .square { font-size: 3rem; }
-            .game-container { flex-direction: column; align-items: center; }
-        }
-
         .controls {
             background-color: var(--panel-bg);
             padding: 25px;
@@ -85,13 +97,6 @@
             flex-direction: column;
             gap: 15px;
             width: 250px;
-        }
-
-        .controls h3 {
-            margin: 0;
-            text-align: center;
-            border-bottom: 2px solid var(--bg-color);
-            padding-bottom: 10px;
         }
 
         select, button {
@@ -110,25 +115,78 @@
             font-weight: bold;
             border: none;
             transition: background-color 0.2s;
-            margin-top: 10px;
         }
 
-        button:hover {
-            background-color: #555;
+        button:hover { background-color: #555; }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            line-height: 1.6;
+        }
+
+        .close-btn {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close-btn:hover { color: #000; }
+
+        .portrait {
+            float: right;
+            margin: 0 0 15px 15px;
+            border: 1px solid #ccc;
+            padding: 5px;
+            background: white;
+            max-width: 150px;
+        }
+
+        .portrait img { width: 100%; display: block; }
+        .portrait caption { font-size: 0.75rem; color: #666; display: block; text-align: center; margin-top: 5px; }
+
+        @media (max-width: 500px) {
+            .square { font-size: 3rem; }
+            .game-container { flex-direction: column; align-items: center; }
+            .portrait { float: none; margin: 0 auto 15px; display: block; }
         }
     </style>
 </head>
 <body>
 
-    <h1>Winawer Microchess</h1>
+    <div class="header-container">
+        <h1 id="main-title">Knightless Microchess</h1>
+        <div class="about-link" id="about-trigger">About this game</div>
+    </div>
+    
     <div id="status"></div>
 
     <div class="game-container">
         <div id="board"></div>
 
         <div class="controls">
-            <h3>Game Settings</h3>
-            
             <label for="view-select"><strong>Board View:</strong></label>
             <select id="view-select">
                 <option value="1">White at Bottom</option>
@@ -145,11 +203,28 @@
         </div>
     </div>
 
+    <div id="about-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-modal">&times;</span>
+            <h2>About Knightless Microchess</h2>
+            
+            <div class="portrait">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e9/Szymon_Winawer.jpg" alt="Szymon Winawer">
+                <caption>Szymon Winawer</caption>
+            </div>
+
+            <p><strong>Knightless Microchess</strong>, aka <strong>Winawer Microchess</strong>, is a simplified variant of chess stumbled upon by Jonathan Winawer and his 5-year-old daughter (5 and 3/4, she says) on April 4, 2026, during said daughter's bedtime.</p>
+            
+            <p>Winawer learned chess as a kid but was never particularly good at it. In contrast, a distant, long-passed relative, <a href="https://en.wikipedia.org/wiki/Szymon_Winawer" target="_blank">Szymon Winawer</a>, was one of the top players in the world in the 19th century. To honor that lineage, we named it Winawer Microchess.</p>
+            
+            <p>The name <em>Knightless Microchess</em> is the alternate and more descriptive title. When we started tinkering, we found that wherever we put a knight, it made it possible for white to get a checkmate on the first move! To keep the game balanced and playable on a 4x4 grid, we removed the knights and doubled up the bishops instead.</p>
+            
+            <p>The game was then vibe coded using <strong>Gemini 3</strong>.</p>
+        </div>
+    </div>
+
     <script>
-        // --- Game State Variables ---
-        let board = [
-            [0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]
-        ];
+        let board = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
         let selectedSq = null;
         let gameOver = false;
         let gameStarted = false; 
@@ -162,8 +237,14 @@
         const viewSelect = document.getElementById('view-select');
         const modeSelect = document.getElementById('mode-select');
         const newGameBtn = document.getElementById('new-game-btn');
+        const modal = document.getElementById('about-modal');
 
-        // --- Initialization & Event Listeners ---
+        // Modal Logic
+        document.getElementById('main-title').onclick = () => modal.style.display = "block";
+        document.getElementById('about-trigger').onclick = () => modal.style.display = "block";
+        document.getElementById('close-modal').onclick = () => modal.style.display = "none";
+        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
+
         viewSelect.addEventListener('change', () => {
             humanColor = parseInt(viewSelect.value);
             selectedSq = null;
@@ -179,15 +260,11 @@
 
         newGameBtn.addEventListener('click', startNewGame);
 
-        // Run this on page load to show the dimmed, inactive board
         setupInitialBoard();
 
         function setupInitialBoard() {
             board = [
-                [ 4,  2,  2,  3], 
-                [ 1,  1,  1,  1], 
-                [-1, -1, -1, -1], 
-                [-4, -2, -2, -3]  
+                [ 4,  2,  2,  3], [ 1,  1,  1,  1], [-1, -1, -1, -1], [-4, -2, -2, -3]  
             ];
             gameStarted = false;
             gameOver = false;
@@ -197,56 +274,34 @@
 
         function startNewGame() {
             gameStarted = true; 
-            board = [
-                [ 4,  2,  2,  3], 
-                [ 1,  1,  1,  1], 
-                [-1, -1, -1, -1], 
-                [-4, -2, -2, -3]
-            ];
-            
+            board = [ [ 4,  2,  2,  3], [ 1,  1,  1,  1], [-1, -1, -1, -1], [-4, -2, -2, -3] ];
             selectedSq = null;
             currentTurn = 1; 
             humanColor = parseInt(viewSelect.value);
             gameMode = parseInt(modeSelect.value);
-            
             gameOver = checkGameOver(currentTurn);
             drawBoard();
-
-            if (gameMode === 1 && humanColor === -1 && !gameOver) {
-                setTimeout(computerMove, 500);
-            }
+            if (gameMode === 1 && humanColor === -1 && !gameOver) setTimeout(computerMove, 500);
         }
 
         function checkGameOver(colorToMove) {
             let moves = getLegalMoves(board, colorToMove);
-            let isOver = false;
-            
             if (moves.length === 0) {
-                isOver = true;
                 if (isCheck(board, colorToMove)) {
                     let winner = colorToMove === 1 ? "Black" : "White";
                     statusEl.innerText = `Checkmate! ${winner} Wins!`;
-                    statusEl.style.color = "#d93838"; 
                 } else {
                     statusEl.innerText = "Stalemate! Draw!";
-                    statusEl.style.color = "#333";
                 }
-            } else {
-                let side = colorToMove === 1 ? "White's" : "Black's";
-                if (isCheck(board, colorToMove)) {
-                    statusEl.innerText = `Check! ${side} Turn`;
-                    statusEl.style.color = "#d93838";
-                } else {
-                    statusEl.innerText = `${side} Turn`;
-                    statusEl.style.color = "#333";
-                }
+                return true;
             }
-            return isOver;
+            let side = colorToMove === 1 ? "White's" : "Black's";
+            statusEl.innerText = isCheck(board, colorToMove) ? `Check! ${side} Turn` : `${side} Turn`;
+            return false;
         }
 
         function squareClicked(logicalRow, logicalCol) {
-            if (!gameStarted || gameOver) return; 
-            if (gameMode === 1 && currentTurn !== humanColor) return;
+            if (!gameStarted || gameOver || (gameMode === 1 && currentTurn !== humanColor)) return;
 
             if (!selectedSq) {
                 if (Math.sign(board[logicalRow][logicalCol]) === currentTurn) {
@@ -259,21 +314,14 @@
                     drawBoard();
                 } else {
                     let moves = getLegalMoves(board, currentTurn);
-                    let validMove = moves.find(m => 
-                        m[0] === selectedSq[0] && m[1] === selectedSq[1] && 
-                        m[2] === logicalRow && m[3] === logicalCol
-                    );
-
+                    let validMove = moves.find(m => m[0] === selectedSq[0] && m[1] === selectedSq[1] && m[2] === logicalRow && m[3] === logicalCol);
                     if (validMove) {
                         applyMove(selectedSq[0], selectedSq[1], logicalRow, logicalCol);
                         selectedSq = null;
                         currentTurn = -currentTurn;
                         drawBoard();
                         gameOver = checkGameOver(currentTurn);
-                        
-                        if (!gameOver && gameMode === 1) {
-                            setTimeout(computerMove, 500);
-                        }
+                        if (!gameOver && gameMode === 1) setTimeout(computerMove, 500);
                     } else {
                         selectedSq = null;
                         drawBoard();
@@ -291,56 +339,42 @@
 
         function computerMove() {
             if (!gameStarted || gameOver || gameMode === 2) return;
-
             let moves = getLegalMoves(board, currentTurn);
             if (moves.length === 0) return;
-
-            let idx = Math.floor(Math.random() * moves.length);
-            let move = moves[idx];
-
+            let move = moves[Math.floor(Math.random() * moves.length)];
             selectedSq = [move[0], move[1]];
             drawBoard();
-
             setTimeout(() => {
                 applyMove(move[0], move[1], move[2], move[3]);
                 selectedSq = [move[2], move[3]];
                 drawBoard();
-
                 setTimeout(() => {
                     selectedSq = null;
                     currentTurn = -currentTurn;
                     drawBoard();
                     gameOver = checkGameOver(currentTurn);
                 }, 400);
-
             }, 400);
         }
 
         function drawBoard() {
             boardEl.innerHTML = ''; 
-
             for (let vr = 0; vr < 4; vr++) {
                 for (let vc = 0; vc < 4; vc++) {
                     let r = (humanColor === 1) ? 3 - vr : vr;
                     let c = (humanColor === 1) ? vc : 3 - vc;
-
                     let square = document.createElement('div');
                     square.className = 'square';
                     let isLight = (r + c) % 2 !== 0;
                     square.style.backgroundColor = isLight ? 'var(--light-sq)' : 'var(--dark-sq)';
-
                     if (selectedSq && selectedSq[0] === r && selectedSq[1] === c) {
-                        square.style.backgroundColor = (currentTurn === 1) 
-                            ? 'var(--highlight-human)' 
-                            : 'var(--highlight-ai)';
+                        square.style.backgroundColor = (currentTurn === 1) ? 'var(--highlight-human)' : 'var(--highlight-ai)';
                     }
-
                     let p = board[r][c];
                     if (p !== 0) {
                         let isActive = (gameStarted && !gameOver && Math.sign(p) === currentTurn);
                         square.innerHTML = getPieceSymbol(p, isActive);
                     }
-
                     square.onclick = () => squareClicked(r, c);
                     boardEl.appendChild(square);
                 }
@@ -350,7 +384,6 @@
        function getPieceSymbol(val, isActive) {
             const base = "https://upload.wikimedia.org/wikipedia/commons/";
             let url = "";
-            
             switch (val) {
                 case 1:  url = base + "4/45/Chess_plt45.svg"; break;
                 case 2:  url = base + "b/b1/Chess_blt45.svg"; break;
@@ -364,10 +397,9 @@
                 case -5: url = base + "4/47/Chess_qdt45.svg"; break;
                 default: return '';
             }
-            
-            // ADJUST THIS SCALAR: 0.7 is subtler than 0.35
-            let opacity = isActive ? "1" : "0.7";
-            return `<img src="${url}" style="width: 80%; height: 80%; pointer-events: none; opacity: ${opacity}; transition: opacity 0.3s ease;" alt="piece">`;
+            let filter = isActive ? "none" : "grayscale(100%) contrast(0.6) brightness(1.1)";
+            let scale = isActive ? "scale(1)" : "scale(0.92)";
+            return `<img src="${url}" style="width: 80%; height: 80%; pointer-events: none; filter: ${filter}; transform: ${scale}; transition: all 0.3s ease;" alt="piece">`;
         }
 
         function getLegalMoves(b, color) {
@@ -384,19 +416,13 @@
         }
 
         function isCheck(b, color) {
-            let kingVal = color * 4;
-            let kr = -1, kc = -1;
+            let kingVal = color * 4, kr = -1, kc = -1;
             for (let r = 0; r < 4; r++) {
-                for (let c = 0; c < 4; c++) {
-                    if (b[r][c] === kingVal) { kr = r; kc = c; }
-                }
+                for (let c = 0; c < 4; c++) { if (b[r][c] === kingVal) { kr = r; kc = c; } }
             }
             if (kr === -1) return false;
             let enemyMoves = getPseudoLegalMoves(b, -color);
-            for (let i = 0; i < enemyMoves.length; i++) {
-                if (enemyMoves[i][2] === kr && enemyMoves[i][3] === kc) return true;
-            }
-            return false;
+            return enemyMoves.some(m => m[2] === kr && m[3] === kc);
         }
 
         function getPseudoLegalMoves(b, color) {
@@ -406,8 +432,7 @@
                     if (Math.sign(b[r][c]) === color) {
                         let pType = Math.abs(b[r][c]);
                         if (pType === 1) { 
-                            let dir = color; 
-                            let nr = r + dir;
+                            let nr = r + color;
                             if (nr >= 0 && nr <= 3) {
                                 if (b[nr][c] === 0) moves.push([r, c, nr, c]);
                                 if (c > 0 && Math.sign(b[nr][c-1]) === -color) moves.push([r, c, nr, c-1]);
