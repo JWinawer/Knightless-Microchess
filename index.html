@@ -376,14 +376,14 @@
             }
         }
 
-        function getPieceSymbol(val) {
-            // Using the solid unicode characters for both so we can color them with CSS
+       function getPieceSymbol(val) {
+            // Added &#xFE0E; to force phones to render as text, not emojis
             switch (Math.abs(val)) {
-                case 1: return '&#9823;'; // Pawn
-                case 2: return '&#9821;'; // Bishop
-                case 3: return '&#9820;'; // Rook
-                case 4: return '&#9818;'; // King
-                case 5: return '&#9819;'; // Queen (Promotion)
+                case 1: return '&#9823;&#xFE0E;'; // Pawn
+                case 2: return '&#9821;&#xFE0E;'; // Bishop
+                case 3: return '&#9820;&#xFE0E;'; // Rook
+                case 4: return '&#9818;&#xFE0E;'; // King
+                case 5: return '&#9819;&#xFE0E;'; // Queen (Promotion)
                 default: return '';
             }
         }
