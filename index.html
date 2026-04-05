@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Winawer Microchess</title>
+    <title>Knightless Microchess</title>
     <style>
         :root {
             --bg-color: #f0f0f0;
@@ -186,7 +186,7 @@
 <body>
 
     <div class="header-container">
-        <h1 id="main-title">Winawer Microchess</h1>
+        <h1 id="main-title">Knightless Microchess</h1>
         <div class="about-link" id="about-trigger">About this game</div>
     </div>
     
@@ -208,6 +208,12 @@
                 <option value="2">2 Player (Local)</option>
             </select>
 
+            <label for="difficulty-select"><strong>AI Difficulty:</strong></label>
+            <select id="difficulty-select">
+                <option value="easy">Easy (Random)</option>
+                <option value="advanced">Advanced (Score-based)</option>
+            </select>
+
             <button id="new-game-btn">Start New Game</button>
         </div>
     </div>
@@ -215,14 +221,14 @@
     <div id="about-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn" id="close-modal">&times;</span>
-            <h2>About Winawer Microchess</h2>
+            <h2>About Knightless Microchess</h2>
             
             <div class="portrait">
                 <img src="Szymon_Winawer.jpg" alt="Szymon Winawer">
                 <caption>Szymon Winawer</caption>
             </div>
 
-            <p><strong>Winawer Microchess</strong>, aka <strong>Knightless Microchess</strong>, is a simplified variant of chess stumbled upon by Jonathan Winawer and his 5-year-old daughter (5 and 3/4, she says) on April 4, 2026, during said daughter's bedtime.</p>
+            <p><strong>Knightless Microchess</strong>, aka <strong>Winawer Microchess</strong>, is a simplified variant of chess stumbled upon by Jonathan Winawer and his 5-year-old daughter (5 and 3/4, she says) on April 4, 2026, during said daughter's bedtime.</p>
             
             <p>Winawer learned chess as a kid but was never particularly good at it. In contrast, a distant, long-passed relative, <a href="https://en.wikipedia.org/wiki/Szymon_Winawer" target="_blank">Szymon Winawer</a>, was one of the top players in the world in the 19th century. To honor that lineage, we named it Winawer Microchess.</p>
             
@@ -245,11 +251,13 @@
         let humanColor = 1;
         let currentTurn = 1; 
         let gameMode = 1;
+        let aiDifficulty = 'easy';
 
         const boardEl = document.getElementById('board');
         const statusEl = document.getElementById('status');
         const viewSelect = document.getElementById('view-select');
         const modeSelect = document.getElementById('mode-select');
+        const difficultySelect = document.getElementById('difficulty-select');
         const newGameBtn = document.getElementById('new-game-btn');
         const modal = document.getElementById('about-modal');
 
@@ -266,9 +274,14 @@
 
         modeSelect.addEventListener('change', () => {
             gameMode = parseInt(modeSelect.value);
+            difficultySelect.disabled = (gameMode === 2);
             if (gameStarted && gameMode === 1 && currentTurn !== humanColor && !gameOver) {
                 setTimeout(computerMove, 300);
             }
+        });
+
+        difficultySelect.addEventListener('change', () => {
+            aiDifficulty = difficultySelect.value;
         });
 
         newGameBtn.addEventListener('click', startNewGame);
@@ -292,6 +305,7 @@
             currentTurn = 1; 
             humanColor = parseInt(viewSelect.value);
             gameMode = parseInt(modeSelect.value);
+            aiDifficulty = difficultySelect.value;
             gameOver = checkGameOver(currentTurn);
             drawBoard();
             if (gameMode === 1 && humanColor === -1 && !gameOver) setTimeout(computerMove, 500);
@@ -350,16 +364,86 @@
             if (board[r2][c2] === -1 && r2 === 0) board[r2][c2] = -5;
         }
 
+        // --- AI Evaluation Function ---
+        function evaluateBoardState(b) {
+            let score = 0;
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    let p = b[r][c];
+                    if (p === 0) continue;
+                    let val = 0;
+                    switch (Math.abs(p)) {
+                        case 1: val = 1; break; // Pawn
+                        case 2: val = 3; break; // Bishop
+                        case 3: val = 5; break; // Rook
+                        case 5: val = 9; break; // Queen
+                    }
+                    score += (p > 0 ? val : -val); // Positive favors White, Negative favors Black
+                }
+            }
+            return score;
+        }
+
         function computerMove() {
             if (!gameStarted || gameOver || gameMode === 2) return;
             let moves = getLegalMoves(board, currentTurn);
             if (moves.length === 0) return;
-            let move = moves[Math.floor(Math.random() * moves.length)];
-            selectedSq = [move[0], move[1]];
+
+            let chosenMove;
+
+            if (aiDifficulty === 'easy') {
+                chosenMove = moves[Math.floor(Math.random() * moves.length)];
+            } else {
+                // Advanced: 1-ply Greedy Search
+                let bestScore = currentTurn === 1 ? -Infinity : Infinity;
+                let bestMoves = [];
+
+                for (let m of moves) {
+                    // Create a temporary board and apply the move
+                    let tempB = [ [...board[0]], [...board[1]], [...board[2]], [...board[3]] ];
+                    tempB[m[2]][m[3]] = tempB[m[0]][m[1]];
+                    tempB[m[0]][m[1]] = 0;
+                    // Handle hypothetical promotion
+                    if (tempB[m[2]][m[3]] === 1 && m[2] === 3) tempB[m[2]][m[3]] = 5;
+                    if (tempB[m[2]][m[3]] === -1 && m[2] === 0) tempB[m[2]][m[3]] = -5;
+
+                    let score;
+                    let enemyMoves = getLegalMoves(tempB, -currentTurn);
+                    
+                    // Check if this move results in a checkmate
+                    if (enemyMoves.length === 0 && isCheck(tempB, -currentTurn)) {
+                        score = currentTurn === 1 ? Infinity : -Infinity;
+                    } else {
+                        score = evaluateBoardState(tempB);
+                    }
+
+                    // White wants to maximize score, Black wants to minimize
+                    if (currentTurn === 1) {
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMoves = [m];
+                        } else if (score === bestScore) {
+                            bestMoves.push(m);
+                        }
+                    } else {
+                        if (score < bestScore) {
+                            bestScore = score;
+                            bestMoves = [m];
+                        } else if (score === bestScore) {
+                            bestMoves.push(m);
+                        }
+                    }
+                }
+                
+                // Pick randomly among moves that yield the same best score
+                chosenMove = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+            }
+
+            selectedSq = [chosenMove[0], chosenMove[1]];
             drawBoard();
             setTimeout(() => {
-                applyMove(move[0], move[1], move[2], move[3]);
-                selectedSq = [move[2], move[3]];
+                applyMove(chosenMove[0], chosenMove[1], chosenMove[2], chosenMove[3]);
+                selectedSq = [chosenMove[2], chosenMove[3]];
                 drawBoard();
                 setTimeout(() => {
                     selectedSq = null;
