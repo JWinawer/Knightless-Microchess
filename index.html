@@ -121,7 +121,9 @@
 <body>
 
     <h1>Winawer Microchess</h1>
-    <div id="status"></div> <div class="game-container">
+    <div id="status"></div>
+
+    <div class="game-container">
         <div id="board"></div>
 
         <div class="controls">
@@ -150,12 +152,11 @@
         ];
         let selectedSq = null;
         let gameOver = false;
-        let gameStarted = false; // NEW: Track if game is active
+        let gameStarted = false; 
         let humanColor = 1;
         let currentTurn = 1; 
         let gameMode = 1;
 
-        // UI Elements
         const boardEl = document.getElementById('board');
         const statusEl = document.getElementById('status');
         const viewSelect = document.getElementById('view-select');
@@ -178,12 +179,10 @@
 
         newGameBtn.addEventListener('click', startNewGame);
 
-        // Run this on page load
+        // Run this on page load to show the dimmed, inactive board
         setupInitialBoard();
 
-        // --- Core Functions ---
         function setupInitialBoard() {
-            // Populate board logic for visual only
             board = [
                 [ 4,  2,  2,  3], 
                 [ 1,  1,  1,  1], 
@@ -192,12 +191,12 @@
             ];
             gameStarted = false;
             gameOver = false;
-            statusEl.innerText = ""; // Ensure status is empty
+            statusEl.innerText = ""; 
             drawBoard();
         }
 
         function startNewGame() {
-            gameStarted = true; // Activate the game
+            gameStarted = true; 
             board = [
                 [ 4,  2,  2,  3], 
                 [ 1,  1,  1,  1], 
@@ -233,12 +232,11 @@
                     statusEl.style.color = "#333";
                 }
             } else {
+                let side = colorToMove === 1 ? "White's" : "Black's";
                 if (isCheck(board, colorToMove)) {
-                    let side = colorToMove === 1 ? "White's" : "Black's";
                     statusEl.innerText = `Check! ${side} Turn`;
                     statusEl.style.color = "#d93838";
                 } else {
-                    let side = colorToMove === 1 ? "White's" : "Black's";
                     statusEl.innerText = `${side} Turn`;
                     statusEl.style.color = "#333";
                 }
@@ -246,10 +244,8 @@
             return isOver;
         }
 
-        // --- Interaction ---
         function squareClicked(logicalRow, logicalCol) {
-            if (!gameStarted || gameOver) return; // Ignore clicks if game hasn't started
-            
+            if (!gameStarted || gameOver) return; 
             if (gameMode === 1 && currentTurn !== humanColor) return;
 
             if (!selectedSq) {
@@ -293,7 +289,6 @@
             if (board[r2][c2] === -1 && r2 === 0) board[r2][c2] = -5;
         }
 
-        // --- Computer AI ---
         function computerMove() {
             if (!gameStarted || gameOver || gameMode === 2) return;
 
@@ -321,19 +316,16 @@
             }, 400);
         }
 
-        // --- Rendering ---
         function drawBoard() {
             boardEl.innerHTML = ''; 
 
             for (let vr = 0; vr < 4; vr++) {
                 for (let vc = 0; vc < 4; vc++) {
-                    
                     let r = (humanColor === 1) ? 3 - vr : vr;
                     let c = (humanColor === 1) ? vc : 3 - vc;
 
                     let square = document.createElement('div');
                     square.className = 'square';
-
                     let isLight = (r + c) % 2 !== 0;
                     square.style.backgroundColor = isLight ? 'var(--light-sq)' : 'var(--dark-sq)';
 
@@ -345,7 +337,6 @@
 
                     let p = board[r][c];
                     if (p !== 0) {
-                        // NEW LOGIC: A piece is only fully opaque if the game is STARTED, not over, AND it's their turn
                         let isActive = (gameStarted && !gameOver && Math.sign(p) === currentTurn);
                         square.innerHTML = getPieceSymbol(p, isActive);
                     }
@@ -374,11 +365,11 @@
                 default: return '';
             }
             
+            // ADJUST THIS SCALAR: 0.7 is subtler than 0.35
             let opacity = isActive ? "1" : "0.7";
             return `<img src="${url}" style="width: 80%; height: 80%; pointer-events: none; opacity: ${opacity}; transition: opacity 0.3s ease;" alt="piece">`;
         }
 
-        // --- Chess Move Rules ---
         function getLegalMoves(b, color) {
             let pseudo = getPseudoLegalMoves(b, color);
             let legal = [];
